@@ -1,5 +1,5 @@
 ---
-title: "Victor Huarniz Homework Code 2"
+title: "Victor Huarniz Code 2"
 author: "Victor Huarniz - MSBA4 - 11/12/2020"
 output:
   word_document: default
