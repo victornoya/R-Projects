@@ -1,5 +1,5 @@
 ---
-title: 'Homework: Coding questions #1'
+title: 'Coding questions #1'
 author: "Victor Huarniz - MSBA4"
 date: "5/12/2020"
 output:
