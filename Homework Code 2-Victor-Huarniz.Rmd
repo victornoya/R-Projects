@@ -1,0 +1,214 @@
+---
+title: "Victor Huarniz Homework Code 2"
+author: "Victor Huarniz - MSBA4 - 11/12/2020"
+output:
+  word_document: default
+  html_document: default
+---
+# Chapter 6.7
+## Exercise 3:
+
+3. Using	the	iris	dataset:
+
+a)	Combine	the	Setosa	and	Versicolor	into	group	“0”	and	label	the	Virginica	to	“1”.	Create	a	new	variable	called	iris$Group	with	the	0	or	1	labels.
+b)	Build	a	logistic	regression	model	using	any	available	data	that will	predict	the	observation	being	Virginica	(value	of	1	in	Group	variable),
+c)	Calculate	the	probability	of	a	new	plant	being	a	Virginica	for	the	following	parameters:	
+Sepal.Width	=5 | Petal.Length	=10 | Petal.Width	=7 | Sepal.Length=9
+
+```{r, include=TRUE}
+#############################################################################
+# a.1) Reading Iris dataset as df
+library(MASS)
+df <- iris
+
+# a.2) Combine setosa and versicolor into group "0" and label the virginica to "1" into new variable iris$Group
+
+new_df <- as.data.frame(df) # creating a copy of df to work with
+
+for (i in 1:nrow(df)){ # Creating a for loop to change versicolor and setosa to 0, and virginica 1
+  if(df$Species[i]=="setosa" | df$Species[i]=="versicolor"){
+    new_df$Group[i] <- 0 #defining 0 as setosa or versicolor in new column "Group"
+  } #close if
+  else if(df$Species[i]=="virginica"){
+    new_df$Group[i] <- 1 #defining 1 as virginica in new column "Group"    
+  } #close else if
+  else{
+    print("Check new variable not listed")
+  } # close else
+} # close for loop
+#############################################################################
+# b.1) Creating logistic regression for f(x) : Group( Sepal.Length + Sepal.Width + Petal.Length + Petal.Width) with 100% available data
+
+logis_reg <- glm(Group ~ Sepal.Length + Sepal.Width + Petal.Length + Petal.Width,
+    data=new_df, family="binomial")
+#############################################################################
+# C.1) Getting coefficients and insights from regression
+
+my_coeff <- logis_reg$coefficients # get coefficients
+insight <- exp(my_coeff)-1 # get probabilities
+my_pvalues <- coef(summary(logis_reg))[,'Pr(>|z|)'] # get p-values
+
+# c.2) Calculating probabilities
+col_names <- colnames(df)
+X1	= 5 # Sepal.Width
+X2	= 10 # Petal.Length
+X3	= 7 # Petal.Width
+X4  = 9 # Sepal.Length
+
+P1 <- exp(my_coeff[3]*X1 + my_coeff[1])-1 # Calculating total prob. of being virginica B3*X3+B1 | Intercept = B1
+P2 <- exp(my_coeff[4]*X2 + my_coeff[1])-1 # Calculating total prob. of being virginica B4*X4+B1 | Intercept = B1
+P3 <- exp(my_coeff[5]*X3 + my_coeff[1])-1 # Calculating total prob. of being virginica B5*X5+B1 | Intercept = B1
+P4 <- exp(my_coeff[2]*X4 + my_coeff[1])-1 # Calculating total prob. of being virginica B2*X2+B1 | Intercept = B1
+PT <- exp(my_coeff[3]*X1 + my_coeff[1] + my_coeff[4]*X2 + my_coeff[5]*X3 + my_coeff[2]*X4 + my_coeff[3]*X1)-1 #calculating the total prob. of an item which satisfies all presumptions
+
+# c.3) Printing interpretations
+```
+
+```{r, echo=FALSE}
+print(paste("When ",col_names[2], " is ", X1," the probability of being a Virginica changes to ", signif(round(P1*100,2),2),"%"," with a ",(round((1-my_pvalues[3])*100,1)),"% confidence"))
+
+print(paste("When ",col_names[3], " is ", X2," the probability of being a Virginica changes to ", signif(round(P2*100,2),2),"%"," with a ",(round((1-my_pvalues[4])*100,1)),"% confidence"))
+
+print(paste("When ",col_names[4], " is ", X3," the probability of being a Virginica changes to ", signif(round(P3*100,2),2),"%"," with a ",(round((1-my_pvalues[5])*100,1)),"% confidence"))
+
+print(paste("When ",col_names[1], " is ", X4," the probability of being a Virginica changes to ", signif(round(P4*100,2),2),"%"," with a ",(round((1-my_pvalues[2])*100,1)),"% confidence"))
+
+print(paste("When we consider all previously values in one whole formula, we can say that the probability of being a Virginica changes to ", signif(round(PT*100,2),2),"%"))
+#############################################################################
+```
+
+**Comment:**
+
+We can calculate the probability of a variable being "virginica" using the 100% observations with a (1- pvalue) confidence. Also, we can see how the probability changes for each variable interaction and what happens when all variables interact with each other. This model helps us predict with a considerable accuracy if an item is virginica or not.
+
+## Exercise 4:
+
+4. Using	the	kyphosis	dataset:
+
+a) Convert	the	kyphosis$Kyphosis	variable	to	numeric,	assign	a	1	to	present	and	a	0	to	absent,	
+b) Build	 a	 logistic	 regression	 using	 all	 other	 variables	 and	estimate	 the	 probability	 of	 the	 observation	 having	 a	 “present”	hyphosis.	 What	 can	 you	 say	 about	 the	 coefficients?	 Are	 they significant?
+c) Calculate	 the	 probability	 of	 kyphosis	 being	 “present”	 for	 the	following	observation:	Age=50,	Start=10,	Number=5.	
+```{r, include=TRUE}
+#############################################################################
+# a.1) Reading kyphosis
+library(rpart)
+df_2 <- kyphosis
+
+# a.2) Convert	the	kyphosis$Kyphosis	variable	to	numeric, 1=present, 0=absent
+new_df_2 <- df_2
+new_df_2$Kyphosis <- (as.numeric(df_2$Kyphosis)-1)
+#############################################################################
+# b.1) Builing logistic regression using all variables to estimate kyphosis
+log_reg_ky <- glm(Kyphosis ~ Age + Number + Start,
+    data=new_df_2, family="binomial")
+
+# b.2) Reading stats in logistic regression
+summary(log_reg_ky)
+
+# b.3) Getting coefficients and insights from regression
+my_coeff <- log_reg_ky$coefficients # get coefficients
+insight <- exp(my_coeff)-1  # get probabilities
+my_pvalues <- coef(summary(log_reg_ky))[,'Pr(>|z|)'] # get p-values
+
+#############################################################################
+# c) Calculating	 the	 probability	 of	 kyphosis	 being	 “present”	 for	 the	following	observation:	Age=50,	Start=10,	Number=5.	
+PT <- exp(my_coeff[1] + my_coeff[2]*50 + my_coeff[3]*5 + my_coeff[4]*10 )-1 #calculating the total prob. of an item which satisfies all presumptions
+
+print(paste("When we consider Age=50, Start=10, Number=5, we can say that the probability of being present changes to ", signif(round(PT*100,2),2),"%"))
+#############################################################################
+```
+
+**Comment:**
+
+b) The coefficients demostrate that the most influence variable is Number, although the p-value only gives us a reliability of 93,2%. At a 99% confidence, we can say that Start seems to be the most significant estimation variable. In general, we can create a prediction model with all variables and an accuracy of 90%.
+
+Overall, the training_data scope lets you estimate with a % of available data a model to predict the outcome following the independent variables.
+
+## Exercise 5:
+
+5. Using	all	the	single	variable	regressions	from	Exercise	1,	test	if	the	 variable	 pairs	 are	 homoscedastic	 or	 heteroscedastic.	 Plot	your	 findings.	Using	 the	 plot(x=my_x_variable,	y=my_y_variable, type=”p”)	function.	Use	my_data$variable_name	to	define	x	and	y	variables	in	the	function.		
+
+```{r, include=TRUE}
+#############################################################################
+#5.1 Variables from Exercise 1
+#Getting iris data frame
+library(MASS)
+iris_df <- iris
+
+# Normalize fuction
+my_normalize <- function(x){
+  norm_x <- ((x - min(x,na.rm = T))/(max(x,na.rm = T)- min(x,na.rm = T)))
+  return(norm_x)}
+
+# Normalizing y variable (Sepal.Length)
+iris_df$Sepal.Length_norm <- my_normalize(iris_df$Sepal.Length)
+
+# Normalizing x variables 
+iris_df$Sepal.Width_norm <- my_normalize(iris_df$Sepal.Width)
+iris_df$Petal.Length_norm <- my_normalize(iris_df$Petal.Length)
+iris_df$Petal.Width_norm <- my_normalize(iris_df$Petal.Width)
+
+log_total <- glm(Sepal.Length_norm ~ Sepal.Width + Petal.Length + Petal.Width,
+    data=iris_df, family="binomial")
+
+sp_wd <- glm(Sepal.Length_norm ~ Sepal.Width ,
+    data=iris_df, family="binomial")
+
+pt_len <- glm(Sepal.Length_norm ~ Petal.Length ,
+    data=iris_df, family="binomial")
+
+pt_wd <- glm(Sepal.Length_norm ~ Petal.Width,
+    data=iris_df, family="binomial")
+
+library(ggplot2)
+```
+```{r fig 1, echo=TRUE, fig.height = 3, fig.width = 5, fig.align = "center"}
+ggplot()+ 
+  geom_point(data= iris_df,aes (x=Sepal.Width_norm, y=Sepal.Length_norm),color= "red", show.legend = F)+
+  geom_point(data= iris_df,aes (x=Petal.Length_norm, y=Sepal.Length_norm),color= "blue", show.legend = F)+
+  geom_point(data= iris_df,aes (x=Petal.Width_norm, y=Sepal.Length_norm),color= "black", show.legend = F)+
+  xlab(NULL)+ labs(title="Plot Distribution per model", subtitle = "Red = Sepal Width, Blue = Petal Length, Black = Petal Width")
+#############################################################################
+# 5.2 Calculating if the models are homoscedastic	 or	 heteroscedastic
+library(lmtest)
+```
+```{r, echo=FALSE}
+T1 <- bptest(log_total)[[4]] #testing for all variables together
+T2 <- bptest(sp_wd)[[4]] #testing Sepal.Width
+T3 <- bptest(pt_len)[[4]] #testing Petal.Length
+T4 <- bptest(pt_wd)[[4]] #testing Petal.Width
+
+# Checking p-value to conclude if heteroscedastic or homoscedastic are present in the models
+```
+
+```{r, echo=FALSE}
+if (T1 < 0.1){
+  print(paste("Since p-value =",round(T1,2) ,", < 0.1, then heteroscedastic is present in model Sepal.Length(all variables) so error variances are not all equal"))
+}else{
+  print(paste("Since p-value =",round(T1,2) ," > 0.1, then homoscedastic is present in model Sepal.Length(all variables) , so error variances are all equal"))
+}
+
+if (T2 < 0.1){
+  print(paste("Since p-value =",round(T2,2) ,", < 0.1, then heteroscedastic is present in model Sepal.Length(Sepal.Width), so error variances are not all equal"))
+}else{
+  print(paste("Since p-value =",round(T2,2) ," > 0.1, then homoscedastic is present in model Sepal.Length(Sepal.Width), so error variances are all equal"))
+}
+
+if (T3 < 0.1){
+  print(paste("Since p-value =",round(T3,2) ,", < 0.1, then heteroscedastic is present in model Sepal.Length(Petal.Length), so error variances are not all equal"))
+}else{
+  print(paste("Since p-value =",round(T3,2) ," > 0.1, then homoscedastic is present in model Sepal.Length(Petal.Length), so error variances are all equal"))
+}
+
+if (T4 < 0.1){
+  print(paste("Since p-value =",round(T4,2) ,", < 0.1, then heteroscedastic is present in model Sepal.Length(Petal.Width), so error variances are not all equal"))
+}else{
+  print(paste("Since p-value =",round(T4,2) ," >0.1, then homoscedastic is present in model Sepal.Length(Petal.Width), so error variances are all equal"))
+}
+```
+
+**Comment:**
+
+If p-value <0.1, heteroscedastic is present in the model, so error variances are not all equal. This test can be run with only one variable or multiple variables within a model. In our results, we got differents p-values in each model, buy over all, we can conclude that all models are heteroscedastic with 90% confidence except Sepal Width which is homoscedastic in relation with Sepal Length and we can also observe in the plots since the red color is really disperse and doesn't show a pattern as black or blue.
+
+

@@ -1,0 +1,183 @@
+---
+title: 'Homework: Coding questions #1'
+author: "Victor Huarniz - MSBA4"
+date: "5/12/2020"
+output:
+  word_document: default
+  html_document: default
+  pdf_document: default
+---
+
+# Chapter 3.4
+## Exercise 2
+
+Create	 your	 own	 script	 header.	 Make	 sure	 you	 include	 all	
+information	about	yourself	so	that	it	serves	as	a	business	card	as	
+well.	Make	sure	it	doesn’t	execute	with	the	other	R	code	using	the	
+“comment”	option.	
+
+```{r intro, include=TRUE}
+#############################################################################
+# Victor Jesus Huarniz Noya
+## International Bus. Rep. | Accounting Advisor | Consultant | MSc Finance & MSBA | Data Scientist |  
+## CPA, CMA & ACCA Cand.
+#############################################################################
+## Phone number: +1 857 205 8509
+## Email: victor.h.noya@gmail.com
+## Linkedin: https://www.linkedin.com/in/victor-h-noya/
+## Website: https://emaze.me/victorcvenglish#EXPERIENCE
+```
+
+**Comment:** 
+This is a sample header we all should include in our codes to show our intellectual property, also
+we should consider having a specific part to comment our sources and share credit if we have used other's code. We also have to remember to insert comments inside the code to explain what we are doing and don't lose track of certain variables.
+
+
+## Exercise 3
+
+Find	 the	 best	 library	 to	 build	 a	 neural	 network.
+a)	Install	the	library,
+b)	Read	the	library	documentation	from	CRAN,
+c)	Get	the	R	help	document	for	the	function	that	trains	the	model	
+(hint:	fist,	find	the	function	from	the	library	document,	secondly,	
+use	the	“?”	option	to	get	help	on	the	function)
+
+```{r exercise3, include=TRUE}
+# a) Install library
+# install.packages("neuralnet")
+
+# b) Read library
+library(neuralnet)
+
+# reading packages inside the library
+ls("package:neuralnet")
+
+# c) Getting help from the function
+?neuralnet 
+```
+
+**Comment:** 
+
+We can check that the package "neuralnet" helps to train models and build a neural network. Using *?* before the package name we can get more details of it, parameters, and examples.
+
+
+## Exercise 8
+
+Create	 a	 user	 defined	 function	 named	 transformmatrix that	
+takes the	diagonal	of	a	matrix	and	calculates	a	vector	with	 two	
+elements.	Element	one	is	the	mean	of	the	diagonal	and	element	
+two	is	the	median.		
+a)	 Use	 the	 transformmatrix function	 to	 transform	 the	 matrix	
+created	in	Exercise	7	from	chapter	2.	
+b)	Use	the transformmatrix	function	to	transform	the	matrix	that	
+was	given	as	an	example	in	chapter	2.1
+
+```{r exercise8, include=TRUE}
+############################################################################
+# Creating matrix from exercise 7
+my_matrix_7 <- matrix(nrow = 5, ncol= 5) #creating matrix 5x5
+first_row <- c(10,11,9,15,19) #data 1st row
+second_row <- c(52,19,7,10,22) #data 2nd row
+third_row <- c(28,40,6,99,33) #data 3rd row
+fourth_row <- c(35,26,5,87,91) #data 4th row
+fifth_row <- c(0,12,16,81,200) #data 5th row
+my_matrix_7 <- rbind(first_row,second_row,third_row,fourth_row,fifth_row) #merging rows in the matrix
+indexes <- my_matrix_7[seq(from=1, to=25,by=6)] #subsetting the diagonal from the matrix
+
+#to validate results exercise 7 mean(indexes) 
+#to validate results exercise 7 median(indexes) 
+
+############################################################################
+# Creating matrix from example chapter 2.1
+
+my_matrix_2 <- matrix(nrow =3, ncol=3, c(1:9), byrow=TRUE) #Creating matrix from example 2.1
+
+############################################################################
+# UDF to take diagonals of matrix and calculate a vector with two elements
+transformmatrix <- function(matrix_a){
+  
+  mean_a <- mean(matrix_a[seq(from=1, to=nrow(matrix_a)*ncol(matrix_a),by=nrow(matrix_a)+1)]) #calculating the mean from the diagonal of any matrix
+  
+  median_a <- median(matrix_a[seq(from=1, to=nrow(matrix_a)*ncol(matrix_a),by=nrow(matrix_a)+1)]) #calculating the median from the diagonal of any matrix
+
+  return (c(mean_a,median_a)) #giving a vector with mean and median as a result of the function
+}
+############################################################################
+# a) Using transformmatrix to transform exercise 7 matrix
+
+a <- transformmatrix(my_matrix_7)
+print(a)
+
+# b) Using transformmatrix to transform exercise 2.1 matrix
+
+b <- transformmatrix(my_matrix_2)
+print(b)
+```
+
+**Comment:** 
+
+By reading the number of rows and columns, we can create a function that gets the diagonal from any matrix. 
+
+
+# Chapter 4.4
+## Exercise 10
+
+Create	a	user defined	function	that	can	clean	up	almost	any	
+data	frame	using	a	loop.	The	function	inputs	are	the	dataset	name	
+and	the	column	indexes	that	we	want	to	clean	up.	An	example	of	
+the	function	call	might	look	like	this:	
+```{r}
+# function_name(x=mydata,	col_idx=c(1,2,3))
+```
+
+The	loop	inside	the	function	will	take	column	indexes	(from	the	
+call	inputs)	and	remove	observations	with	empty	values.	
+Hint:	inside the	loop,	use:	
+
+```{r}
+# new_df <- x[-which(is.na(x[	,col_idx[i]]))]	
+```
+
+Use library(MASS) and the airquality dataset.
+
+```{r UDF, include=TRUE}
+############################################################################
+# Creating the UDF to clean columns in a dataset
+
+cleaning <- function(x,col_idx){
+  if (length(col_idx) > ncol(x)){
+    print("Error, please put indexes equal or lower than total number of columns in the dataset")
+    print(c("Number of columns in dataset: " , ncol(x)))
+  } #end of if for validation
+  else{
+    cols <- length(col_idx) # getting the number of columns to clean
+    invalid_rows <- c() # creating a vector to store rows with na values
+    
+    for (i in 1:cols){
+      invalid_rows <- c(invalid_rows,-which(is.na(x[,col_idx[i]]))) # getting rows that need to be eliminated
+      } # closing for loop
+    if (length(invalid_rows) == 0){
+      print("No NA values in selected columns, all items selected")
+      new_df <- x[,]
+    } #closing if
+    else{
+      new_df <- x[invalid_rows,] #subsetting original dataset without invalid rows
+    } #closing else to validate invalid_rows > 0
+    return(new_df) #returning the result dataframe
+  } #end of else
+} # end of function
+
+############################################################################
+# Reading dataset
+library(MASS)
+df <- airquality
+
+############################################################################
+#Testing code
+df_test <- cleaning(x=df, col_idx=c(1:5))
+print(df_test)
+```
+
+**Comment:** 
+
+It's interesting to see how the for loop lets us expand and automate our function even better. I added an if statement to check that the user makes no mistake when asking for which rows to consider and when there's no need to delete rows.
